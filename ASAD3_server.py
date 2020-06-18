@@ -123,7 +123,7 @@ def listen_for_client(name_server):
     server_sock.bind((HOST,PORT))
     server_sock.listen(1)
         
-    print("Listening for connection on {HOST}:{PORT}")
+    print(f'Listening for connection on {HOST}:{PORT}')
     client_sock, client_info = server_sock.accept()
     connected = True
     Exit = False
@@ -281,7 +281,7 @@ def processCmd(data):
             print("EOF Ack")
             eof_ack = True
 
-        elif data == b'\x02' or data == b'\x03':
+        elif data == b'STARTRECORD' or data == b'\x02' or data == b'\x03':
             #start Recording
             if not LEDOn:
                start_stop_recording(60)
@@ -489,8 +489,9 @@ while True:
        direc = "  Recording Number {}".format(buttonPress)
     
        if 'C6FA-6FD7' in usb_stats:
-           mount_cmd = "sudo mount /dev/sda1 /media/usb -o uid=pi, gid=pi"
-           os.system(mount_cmd)
+           if not os.path.ismount('/media/usb'):
+               mount_cmd = "sudo mount /dev/sda1 /media/usb -o uid=pi,gid=pi"
+               os.system(mount_cmd)
            usb_conn = True
            if unplug:
                unplug = False
@@ -518,6 +519,9 @@ while True:
                   else:
                       GPIO.output(readyLED, GPIO.LOW)
                       GPIO.output(audioSupplyVolt, GPIO.LOW)
+                      if os.path.ismount('/media/usb'):
+                          umount_cmd = "sudo umount /dev/sda1 /media/usb"
+                          os.system(umount_cmd)
                       draw.text((x, top+16), "    USB Un-Mounted", font=font, fill=255)
                       draw.text((x, top+24), " **OK to remove USB**", font=font, fill=255)
                   
