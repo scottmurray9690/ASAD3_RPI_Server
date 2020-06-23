@@ -151,14 +151,11 @@ def removeHeader(a):
     return a[44:]
 
 def sendHeader(a):
+    print("Sending header")
     a[7] = 0x00
     a[6] = 0x00
     a[5] = 0x00
     a[4] = 0x24
-    a[40] = 0x00
-    a[41] = 0x00
-    a[42] = 0x00
-    a[43] = 0x00    
     client_sock.send(bytes(a[0:44]))    
     #wait()
     return
@@ -201,7 +198,7 @@ def end():
         end_bytes = str.encode(my_str)
         print('Waiting for EOF Ack')
         while(eof_ack == False):
-            client_sock.send(end_bytes)
+            #client_sock.send(end_bytes)
             # TODO: figure out why it sleeps for 5 seconds, seems like a long time. Also the eof_ack thing is kind of useless because its a tcp connection
             time.sleep(5)
             if (eof_ack == True):
@@ -222,9 +219,13 @@ def send():
         GPIO.output(FLAG, GPIO.LOW)
         fileavail=False
 
+        my_str = "START"
+        start_bytes = str.encode(my_str)
+        #client_sock.send(start_bytes)
+
         file = file_tosend
         sendFile(file)
-        end()
+        #end()  This is probably useless
         filenum += 1
         return   
 
@@ -232,11 +233,9 @@ def send():
 def sendFile(filedata):
     print("Sending Data")
     a = conv_file(filedata)
-    if(hasHeader(a)):
-        if(filenum == 1):
-            sendHeader(a)
-            print('Header Sent')
-        a = removeHeader(a)
+    sendHeader(a)
+    print('Header Sent')
+    a = removeHeader(a)
     sendData(a,1024)
     print('Data Sent')
     print("Done. Transmission Successful")
@@ -257,6 +256,8 @@ def run(sock):
         try:
             #print("Recieving")
             data = sock.recv(1024) 
+            if data == b'':
+                continue
             print ("Server received data:", data)
             if data == b'Exit':
                 Exit = True
@@ -450,8 +451,8 @@ def main_thread(client_sock, server_sock):
                 server_sock.close()
                 t1.join()
                 t2.join()
-            except:	
-                print("Error Sending File: Closing socket")                 
+            except Exception as e:	
+                print("Error Sending File: ", e)                 
                 connected = False
                 startnstop = False
                 client_sock.close()

@@ -78,7 +78,7 @@ server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM )
 server_sock.bind((HOST,PORT))
 server_sock.listen(1)
     
-print("Listening for connection on {HOST}:{PORT}")
+print(f"Listening for connection on {HOST}:{PORT}")
 client_sock, client_info = server_sock.accept()
 print("Accepted connection from ", client_info)
 
