@@ -196,6 +196,7 @@ def end():
         print("File transmission Over")
         my_str = "END"
         end_bytes = str.encode(my_str)
+        '''
         print('Waiting for EOF Ack')
         while(eof_ack == False):
             #client_sock.send(end_bytes)
@@ -205,6 +206,7 @@ def end():
                 eof_ack = False
                 break
         print('EOF Ack Recieved ')
+        '''
 
 # sends files
 def send():
@@ -325,8 +327,7 @@ def processCmd(data):
             dirnum += 1
             filenum = 1
             stoprecording = True            
-            print("Stop Recording")
-            
+            print("Stop Recording") 
         
         return
     
@@ -335,9 +336,9 @@ def fileAvailable():
         global filenum, dirnum, connected,fileavail, Exit, file_tosend
         filen = filenum
         
-        name_curr = '/media/usb/Recording Number {}/1-min-block.wav'.format(dirnum)
+        name_curr = '/media/usb/Recording Number {}/1-min-block-{:02d}.wav'.format(dirnum,filenum)
              
-        name_next = '/media/usb/Recording Number {}/1-min-block-{:02d}.wav'.format(dirnum,filenum)
+        name_next = '/media/usb/Recording Number {}/1-min-block-{:02d}.wav'.format(dirnum,filenum+1)
         while connected:
             
             while(stoprecording):
@@ -349,7 +350,9 @@ def fileAvailable():
                 if Exit:
                     return
                 pass
-                        
+
+            print("File exists: ", name_next)
+            print(f"Does file? {name_curr} exist? {os.path.isfile(name_curr)}")
 
             file_tosend = name_curr
             GPIO.output(FLAG, GPIO.HIGH)
@@ -361,12 +364,8 @@ def fileAvailable():
                     return
                 pass
             
-            if stoprecording:
-                name_curr = '/media/usb/Recording Number {}/1-min-block.wav'.format(dirnum)    
-                name_next = '/media/usb/Recording Number {}/1-min-block-{:02d}.wav'.format(dirnum,filenum)
-            else:
-                name_curr = name_next
-                name_next = '/media/usb/Recording Number {}/1-min-block-{:02d}.wav'.format(dirnum,filenum)
+            name_curr = '/media/usb/Recording Number {}/1-min-block-{:02d}.wav'.format(dirnum,filenum)  
+            name_next = '/media/usb/Recording Number {}/1-min-block-{:02d}.wav'.format(dirnum,filenum+1)
             filen = filenum
         print("File Available thread exiting")
 
@@ -434,25 +433,25 @@ def main_thread(client_sock, server_sock):
     if connected:    
             t1 = threading.Thread(target=run, args=(client_sock,))
             #Checks if file is available
-            t2 = threading.Thread(target=fileAvailable) 
-             
+            t2 = threading.Thread(target=fileAvailable)
+
             # starting thread 1 and 2
-            t1.start() 
+            t1.start()
             t2.start()
             try:
                 #print("Sending F5.wav")
                 while not Exit:
                     send()
                     pass
-                print("Closing socket")                 
+                print("Closing socket")     
                 connected = False
                 startnstop = False
                 client_sock.close()
                 server_sock.close()
                 t1.join()
                 t2.join()
-            except Exception as e:	
-                print("Error Sending File: ", e)                 
+            except Exception as e:
+                print("Error Sending File: ", e)
                 connected = False
                 startnstop = False
                 client_sock.close()
