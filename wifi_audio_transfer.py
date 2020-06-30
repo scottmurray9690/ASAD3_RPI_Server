@@ -25,10 +25,6 @@ def sendHeader(a):
     a[6] = 0x00
     a[5] = 0x00
     a[4] = 0x24
-    a[40] = 0x00
-    a[41] = 0x00
-    a[42] = 0x00
-    a[43] = 0x00    
     client_sock.send(bytes(a[0:44]))    
     #wait()
     return
@@ -82,7 +78,7 @@ print(f"Listening for connection on {HOST}:{PORT}")
 client_sock, client_info = server_sock.accept()
 print("Accepted connection from ", client_info)
 
-file_name = '/media/usb/Recording Number 1/breath.wav'
+file_name = '/media/usb/breath.wav'
 
 sendFile(file_name)
 

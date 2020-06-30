@@ -151,7 +151,7 @@ def removeHeader(a):
     return a[44:]
 
 def sendHeader(a):
-    print("Sending header")
+    print("Sending header: ", bytes(a[0:44]))
     a[7] = 0x00
     a[6] = 0x00
     a[5] = 0x00
@@ -165,6 +165,7 @@ def sendData(a, size):
     packet = 0
     start = 0
     end = size
+    print("sending file of size: ",len(a))
     if (len(a) < size):
         client_sock.send(bytes(a))
         #wait();
@@ -235,12 +236,14 @@ def send():
 def sendFile(filedata):
     print("Sending Data")
     a = conv_file(filedata)
-    sendHeader(a)
-    print('Header Sent')
-    a = removeHeader(a)
+    if hasHeader(a):
+        sendHeader(a)
+        print('Header Sent')
+        a = removeHeader(a)
+    else:
+        print('no header, still sending something')
     sendData(a,1024)
     print('Data Sent')
-    print("Done. Transmission Successful")
     return
 
 # converts file to byte array
@@ -287,7 +290,7 @@ def processCmd(data):
         elif data == b'STARTRECORD' or data == b'\x02' or data == b'\x03':
             #start Recording
             if not LEDOn:
-               start_stop_recording(60)
+               start_stop_recording(2)
             stoprecording = False               
             print("Start Recording")
 
@@ -353,6 +356,8 @@ def fileAvailable():
 
             print("File exists: ", name_next)
             print(f"Does file? {name_curr} exist? {os.path.isfile(name_curr)}")
+            
+            time.sleep(0.03)
 
             file_tosend = name_curr
             GPIO.output(FLAG, GPIO.HIGH)
