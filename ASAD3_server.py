@@ -20,6 +20,17 @@ from PIL import Image, ImageDraw, ImageFont
 import adafruit_ssd1306
 import threading 
 
+#Debugging tool that adds timestamps
+from datetime import datetime
+
+old_print = print
+
+def timestamped_print(*args, **kwargs):
+    ts = "[" + str(datetime.now().hour) + ":" + str(datetime.now().minute) + ":" + str(datetime.now().second) + "]"
+    old_print(ts, *args, **kwargs)
+
+print = timestamped_print
+
 
 filenum = 1
 dirnum = 1
@@ -218,7 +229,7 @@ def send():
             if Exit:
                 return
             pass
-        print("File Available")
+        print("File Available: ",file_tosend)
         GPIO.output(FLAG, GPIO.LOW)
         fileavail=False
 
@@ -354,10 +365,10 @@ def fileAvailable():
                     return
                 pass
 
-            print("File exists: ", name_next)
-            print(f"Does file? {name_curr} exist? {os.path.isfile(name_curr)}")
+            print("Next file started: ", name_next)
+            print(f"Does current file? {name_curr} exist? {os.path.isfile(name_curr)}")
             
-            time.sleep(0.03)
+            #time.sleep(0.03)
 
             file_tosend = name_curr
             GPIO.output(FLAG, GPIO.HIGH)
@@ -474,7 +485,6 @@ GPIO.add_event_detect(displayBTN, GPIO.BOTH, callback=my_callback2, bouncetime=5
       
    
 while True:
-    
        if not startnstop:
            print("In Jeffs Code")
            client_sock, server_sock = listen_for_client("Rpi_zero_server")
