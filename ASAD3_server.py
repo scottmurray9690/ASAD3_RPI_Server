@@ -301,7 +301,7 @@ def processCmd(data):
         elif data == b'STARTRECORD' or data == b'\x02' or data == b'\x03':
             #start Recording
             if not LEDOn:
-               start_stop_recording(2)
+               start_stop_recording(1)
             stoprecording = False               
             print("Start Recording")
 
@@ -413,7 +413,7 @@ def start_stop_recording(sec):
 
             name = '1-min-block.wav'
             save = directory + name 
-            rec_vars = ['arecord', '-f', 'cd', '--max-file-time', f'{sec}', save]
+            rec_vars = ['arecord','-v', '-f', 'cd', '--max-file-time', f'{sec}', save]
             rec = subprocess.Popen(rec_vars, shell=False, preexec_fn=os.setsid)
 
 def my_callback(channel):
