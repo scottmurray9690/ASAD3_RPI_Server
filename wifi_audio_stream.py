@@ -37,7 +37,6 @@ def sendData(a, size):
     packet = 0
     start = 0
     end = size
-    
     if (len(a) < size):
         client_sock.send(bytes(a))
         packet += 1
@@ -49,7 +48,6 @@ def sendData(a, size):
             packet += 1
         
         client_sock.send(bytes(a[start:len(a)]))      
-
     #print('File sent in {} Packets'.format(packet))
     return
 
