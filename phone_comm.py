@@ -10,8 +10,9 @@ def open_server_socket(ipaddr, port):
 
     server_sock= socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_sock.bind((ipaddr,port))
-    server_sock.listen(1)
-        
+    server_sock.listen(5)
+
+
     print(f'Listening for connection on {ipaddr}:{port}')
     client_sock, client_info = server_sock.accept()
     connected = True

@@ -10,6 +10,7 @@ import signal
 from PIL import Image, ImageDraw, ImageFont
 import Adafruit_SSD1306
 import phone_comm
+import select
 
 # Raspberry Pi pin configuration:
 RST = 24
@@ -224,7 +225,7 @@ delay = 0
 recording = False
 # Thread that listens for connections on its ippadr and port, if it finds a connection it starts a recieve thread
 def connect_thread():
-    global client_sock, server_sock, client_info, connected
+    
     connected = True
     client_sock, server_sock, client_info = phone_comm.open_server_socket(ipaddr,port)
     # Start recieve thread
@@ -234,21 +235,33 @@ def connect_thread():
 # listen for user commands
 def recieve_cmd(sock): 
     print("Recieve thread Started")
-    while connected : 
+    while True : 
         try:
+            ready_to_read, ready_to_write, in_error = select.select([sock,], [sock,], [], 5)
+        except select.error:
+            sock.shutdown(2)
+            sock.close()
+            print("Connection error: ",in_error)
+            break
+        if (len(ready_to_read) > 0 and len(ready_to_write) > 0):
+            print("error? ",in_error)
+            print("trying to read")
             data = sock.recv(1024) 
             if data == b'':
-                continue
-            process_cmd(data)
-        except:
-            if not connected:
-                break            
+                #recv(1024) only returns an empty byte if the connection is closed by the phone
+                sock.shutdown(2)
+                sock.close()
+                
+                print("Connection closed by remote host.")
+                break
+            process_cmd(data)        
     print("Recieve thread Exiting")
     return
 
 # process user commands        
 def process_cmd(data):
     global recording
+    print("Recieved: ",data )
     if data == b'STARTRECORD':
         #start Recording
         recording = True
@@ -267,7 +280,7 @@ def stream_file_thread():
     print("start file streaming thread")
     file_to_stream = save # location recordings are being saved
     file_count = 1
-    while(recording):
+    while(recording and connected):
         print("streaming file: ",file_to_stream)
         stream_file(file_to_stream) # this method blocks until the entire file is streamed
         file_count += 1
@@ -291,7 +304,7 @@ def stream_file(file_name):
         struct.pack_into('<i',header,40, bufferSize)
         #start reading and sending files
         data = blocking_read(file, bufferSize)
-        while len(data) > 0 and recording:
+        while len(data) > 0 and recording and connected:
             client_sock.send(header)
             send_data(data,1024)
             
