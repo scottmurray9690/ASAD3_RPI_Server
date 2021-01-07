@@ -169,6 +169,9 @@ def my_callback(channel):
 
             name = '15-min-block.wav'
             save = directory + name
+            # Added by scott: Delete old files that would be overwritten before starting recording, fixes issues with 
+            os.system("rm {}*.wav".format(directory.replace(" ", "\ ")))
+
             rec_vars = ['arecord', '-f', 'cd', '--max-file-time', '900', save]
             rec = subprocess.Popen(rec_vars, shell=False, preexec_fn=os.setsid)
 
